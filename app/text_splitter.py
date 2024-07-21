@@ -1,0 +1,8 @@
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+
+def get_text_splitter() -> RecursiveCharacterTextSplitter:
+  ts= RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+    chunk_size=1000, chunk_overlap=0
+  )
+  return ts
