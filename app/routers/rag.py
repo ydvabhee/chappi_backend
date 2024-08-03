@@ -1,3 +1,4 @@
+from http import client
 from re import template
 from fastapi import APIRouter, Request
 from langchain_core.vectorstores.base import VectorStoreRetriever
@@ -8,7 +9,7 @@ from langchain_community.vectorstores import Pinecone
 from pinecone.grpc.index_grpc import GRPCIndex
 from regex import P 
 from app import llm
-from app.types.rag import ContextCreationData, ContextCreationType, ContextQueryBody
+from app.types.rag import ContextCreationData, ContextCreationType, ContextQueryBody, ContextUpdateBodyType
 from app.utills.rag import get_pinecone_index
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_pinecone import PineconeVectorStore
@@ -22,8 +23,10 @@ from langchain import hub
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableLambda
 import time
-from langchain_qdrant import QdrantVectorStore
+from langchain_qdrant import QdrantVectorStore, Qdrant
 import os
+from fastapi.responses import StreamingResponse
+from qdrant_client import QdrantClient
 
 
 QDRANT_API_KEY = os.environ.get('QDRANT_API_KEY')
@@ -127,8 +130,8 @@ async def context(req : Request, body: ContextCreationData):
     return  {"questions":a['questions'], "id":index_name}
 
 
-@router.post("/context/query/")
-async def context_query(req : Request, body: ContextQueryBody):
+
+async def context_query_stream(req : Request, body: ContextQueryBody):
 
     query = body.query
     context_id = body.context_id
@@ -166,11 +169,6 @@ async def context_query(req : Request, body: ContextQueryBody):
     input_variables=["question", 'context'],
     )
 
-
-
-   
-
-
     # RAG pipeline
     chain = (
         {"context": retriever, "question": RunnablePassthrough()}
@@ -178,8 +176,47 @@ async def context_query(req : Request, body: ContextQueryBody):
         | llm
         | output_parser
     )
-    answer = chain.invoke(query)
+    # answer = chain.invoke(query)
+    for answer in chain.stream(query):
+        yield answer
+
+
+@router.post("/context/query/")
+async def context_query(req : Request, body: ContextQueryBody):
+    return StreamingResponse(context_query_stream(req, body))
+
+
+@router.put('/context/update')
+async def context_update(req : Request, body: ContextUpdateBodyType):
+
+    data = body.data
+    type = body.type
+    context_id = body.context_id
+
+
+    embedding = req.app.state.embedding
+    texr_splitter: RecursiveCharacterTextSplitter = req.app.state.text_splitter
+
+    if type == ContextCreationType.TEXT:
+        # split the text
+        texts = texr_splitter.split_text(data)
+    elif type == ContextCreationType.FILE:
+        # read the file
+        pass
+
+
+    # Qdrand Client
+
 
     
-    print(answer)
-    return  {"answer":answer, "id":context_id}
+    client = QdrantClient(
+        url= QDRANT_URL,
+        api_key= QDRANT_API_KEY
+    )
+    collection_name = context_id
+    qdrant   = Qdrant(client, collection_name, embeddings=embedding)
+    qdrant.add_texts(texts=texts)
+   
+    
+    
+

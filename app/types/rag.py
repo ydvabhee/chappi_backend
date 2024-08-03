@@ -19,3 +19,9 @@ class ContextCreationData(BaseModel):
 class ContextQueryBody(BaseModel):
   query: str
   context_id : str
+
+
+class ContextUpdateBodyType(BaseModel):
+  data: str
+  type: str
+  context_id :str
