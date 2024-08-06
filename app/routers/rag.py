@@ -3,16 +3,13 @@ from re import template
 from fastapi import APIRouter, Request
 from langchain_core.vectorstores.base import VectorStoreRetriever
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from pinecone import ServerlessSpec
-from pinecone.grpc import PineconeGRPC 
+
 from langchain_community.vectorstores import Pinecone
-from pinecone.grpc.index_grpc import GRPCIndex
+
 from regex import P 
 from app import llm
 from app.types.rag import ContextCreationData, ContextCreationType, ContextQueryBody, ContextUpdateBodyType
-from app.utills.rag import get_pinecone_index
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_pinecone import PineconeVectorStore
 from langchain_core.retrievers import RetrieverOutputLike
 from langchain.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
@@ -57,7 +54,6 @@ async def context(req : Request, body: ContextCreationData):
     
 
     texr_splitter: RecursiveCharacterTextSplitter = req.app.state.text_splitter
-    pc: PineconeGRPC = req.app.state.pinecone
     embedding = req.app.state.embedding
     llm = req.app.state.llm
 

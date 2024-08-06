@@ -1,33 +1,12 @@
 
 from typing import List
 from langchain_core.documents.base import Document
-from pinecone import ServerlessSpec, Pinecone
-from pinecone.grpc.index_grpc import GRPCIndex
+
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains import create_history_aware_retriever
 from langchain_core.retrievers import RetrieverOutputLike
 import time
 
-def get_pinecone_index(pinecone: Pinecone, index_name: str) -> GRPCIndex:
-  if index_name not in pinecone.list_indexes().names():
-        # if does not exist, create index
-        pinecone.create_index(
-            index_name,
-            dimension=384,  # dimensionality of text-embedding-ada-002
-            metric='cosine',
-            spec=ServerlessSpec(
-            cloud="aws",
-            region="us-east-1",
-            
-    ) 
-        )
-
-
-        while not pinecone.describe_index(index_name).status["ready"]:
-            time.sleep(1)
-    # connect to index
-  index: GRPCIndex = pinecone.Index(index_name)
-  return index
 
 
 

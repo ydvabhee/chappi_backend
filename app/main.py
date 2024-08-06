@@ -7,7 +7,6 @@ from fastapi import FastAPI
 from langchain_core.messages.base import BaseMessage
 
 from app.embeddings import get_sentence_transformer_embeddings
-from app.pinecone import get_pinecone
 from app.text_splitter import get_text_splitter
 from app.llm import get_groq_llm
 from app.routers import rag
@@ -22,7 +21,6 @@ load_dotenv()
 async def lifespan(app: FastAPI):
     app.state.llm = get_groq_llm()
     app.state.text_splitter = get_text_splitter()
-    app.state.pinecone = get_pinecone()
     app.state.embedding = get_sentence_transformer_embeddings()
      
     yield
