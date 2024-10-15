@@ -30,8 +30,8 @@ QDRANT_API_KEY = os.environ.get('QDRANT_API_KEY')
 QDRANT_URL = os.environ.get('QDRANT_API_URL')
 
 
-print(QDRANT_URL)
-print(QDRANT_API_KEY)
+# print(QDRANT_URL)
+# print(QDRANT_API_KEY)
 
 
 router = APIRouter(prefix="/rag", tags=["rag"])
@@ -70,7 +70,7 @@ async def context(req : Request, body: ContextCreationData):
     index_name = str(uuid.uuid4())
    
     vectordb: QdrantVectorStore = QdrantVectorStore.from_texts(
-    texts, embedding, url=QDRANT_URL, api_key=QDRANT_API_KEY, collection_name=index_name,
+    texts=texts, embedding=embedding, url=QDRANT_URL, api_key=QDRANT_API_KEY, collection_name=index_name, https=False, timeout=300
 )
     # get retriever
     retriever = vectordb.as_retriever()
