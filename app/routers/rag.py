@@ -30,8 +30,7 @@ QDRANT_API_KEY = os.environ.get('QDRANT_API_KEY')
 QDRANT_URL = os.environ.get('QDRANT_API_URL')
 
 
-print(QDRANT_URL)
-print(QDRANT_API_KEY)
+
 
 
 router = APIRouter(prefix="/rag", tags=["rag"])
@@ -47,6 +46,9 @@ def inspect(state):
 
 @router.post("/context/" )
 async def context(req : Request, body: ContextCreationData):
+
+    print(QDRANT_URL)
+    print(QDRANT_API_KEY)
 
     data = body.data
     type = body.type
